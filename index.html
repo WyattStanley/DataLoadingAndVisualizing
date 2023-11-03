@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Earthquake List</title>
+    <title>Active Volcanos</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
@@ -11,6 +11,7 @@
         body {
             margin: 0;
             padding: 0;
+            background-color: rgb(252, 252, 255);
         }
 
         #container {
@@ -23,31 +24,42 @@
         #side-panel {
             flex-basis: 500px;
             overflow-y: scroll;
+
         }
 
         #map {
             flex-grow: 1;
         }
         
-        button {
-            margin-bottom: 10px;
-        }
+
 
         table {
             border-collapse: collapse;
             border-spacing: 0;
             width: 100%;
-            border: 1px solid #ddd;
+            border: 1px solid #ffffff;
         }
 
         th,
         td {
             text-align: left;
             padding: 16px;
+            color: #05052d;
+
         }
 
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #e6e6e6;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        @media (max-width: 1024px) {
+            #side-panel {
+                display: none;
+            }
         }
     </style>
 </head> 
@@ -55,15 +67,17 @@
     <body>
         <main id="container">
             <div id="side-panel">
- 
-                <h2>Earthquake List</h2>
-                <button>Sort by Magnitude</button>
+                <center>
+                    <h2>Hawaii - Active Volcanos</h2>
+                </center>
+                
+                <button id="sort-button">Sort by Threat Potential</button>
  
                 <table>
                     <tr>
-                        <th>id</th>
-                        <th>magnitude</th>
-                        <th>timestamp</th>
+                        <th>name</th>
+                        <th>threat potential</th>
+                        <th>advisoty</th>
                     </tr>
                 </table>
  
@@ -77,114 +91,162 @@
             let map = new mapboxgl.Map({
                 container: 'map', // container ID
                 style: 'mapbox://styles/mapbox/satellite-v9', // style URL
-                zoom: 5.5, // starting zoom
-                center: [138, 38] // starting center
+                zoom: 6, // starting zoom
+                center: [-157, 21] // starting center
             });
+
 
             async function geojsonFetch() {
 
-                let response, earthquakes, japan, table;
-                response = await fetch('assets/earthquakes.geojson');
-                earthquakes = await response.json();
-                response = await fetch('assets/japan.json');
-                japan = await response.json();
+                let response, volcanos, hawaii, table;
+                response = await fetch('assets/Volcanos.geojson');
+                volcanos = await response.json();
+                response = await fetch('assets/Hawaii.geojson');
+                hawaii = await response.json();
 
                 table = document.getElementsByTagName("table")[0];
                 let row, cell1, cell2, cell3;
-                for (let i = 0; i < earthquakes.features.length; i++) {
+                for (let i = 0; i < volcanos.features.length; i++) {
                     // Create an empty <tr> element and add it to the 1st position of the table:
                     row = table.insertRow(-1);
                     cell1 = row.insertCell(0);
                     cell2 = row.insertCell(1);
                     cell3 = row.insertCell(2);
-                        cell1.innerHTML = earthquakes.features[i].properties.id;
-                    cell2.innerHTML = earthquakes.features[i].properties.mag;
-                    cell3.innerHTML = new Date(earthquakes.features[i].properties.time).toLocaleDateString(
-                        "en-US");
+                        cell1.innerHTML = volcanos.features[i].properties.name;
+                    cell2.innerHTML = volcanos.features[i].properties.threat_potential;
+                    cell3.innerHTML = volcanos.features[i].properties.advisory;
                 }
 
                 //load data to the map as new layers and table on the side.
                 map.on('load', function loadingData() {
 
-                    map.addSource('earthquakes', {
+                    map.addSource('hawaii', {
                         type: 'geojson',
-                        data: earthquakes
+                        data: hawaii
                     });
 
                     map.addLayer({
-                        'id': 'earthquakes-layer',
-                        'type': 'circle',
-                        'source': 'earthquakes',
-                        'paint': {
-                            'circle-radius': 8,
-                            'circle-stroke-width': 2,
-                            'circle-color': 'red',
-                            'circle-stroke-color': 'white'
-                        }
-                    });
-
-
-                    map.addSource('japan', {
-                        type: 'geojson',
-                        data: japan
-                    });
-
-                    map.addLayer({
-                        'id': 'japan-layer',
+                        'id': 'hawaii-layer',
                         'type': 'fill',
-                        'source': 'japan',
+                        'source': 'hawaii',
                         'paint': {
-                            'fill-color': '#0080ff', // blue color fill
+                            'fill-color': 'green', // blue color fill
                             'fill-opacity': 0.5
                         }
                     });
 
+                    map.addSource('volcanos', {
+                        type: 'geojson',
+                        data: volcanos
+                    });
+
+                    map.addLayer({
+                        'id': 'volcanos-layer',
+                        'type': 'circle',
+                        'source': 'volcanos',
+                        'paint': {
+                            'circle-radius': 5,
+                            'circle-stroke-width': 4,
+                            'circle-color': 'red',
+                            'circle-stroke-color': 'brown'
+                        }
+                    });
                 });
 
             }
 
-            geojsonFetch();        
+            // geojsonFetch();  
+        
+            // sortButton.addEventListener('click', sortTable);
 
-            let btn = document.getElementsByTagName("button")[0];
+            // // define the function to sort table
+            // function sortTable(e) {
+            //     let table, rows, switching, i, x, y, shouldSwitch;
+            //     table = document.getElementsByTagName("table")[0];
+            //     switching = true;
+            //     /*Make a loop that will continue until
+            //     no switching has been done:*/
+            //     while (switching) {
+            //         //start by saying: no switching is done:
+            //         switching = false;
+            //         rows = table.rows;
+            //         /*Loop through all table rows (except the
+            //         first, which contains table headers):*/
+            //        for (i = 1; i < (rows.length - 1); i++) {
+            //             //start by saying there should be no switching:
+            //             shouldSwitch = false;
+            //             /*Get the two elements you want to compare,
+            //             one from current row and one from the next:*/
+            //             x = parseFloat(rows[i].getElementsByTagName("td")[1].innerHTML);
+            //             y = parseFloat(rows[i + 1].getElementsByTagName("td")[1].innerHTML);
+            //             //check if the two rows should switch place:
+            //             if (x < y) {
+            //                 //if so, mark as a switch and break the loop:
+            //                 shouldSwitch = true;
+            //                 break;
+            //             }
+            //         }
+            //         if (shouldSwitch) {
+            //             /*If a switch has been marked, make the switch
+            //             and mark that a switch has been done:*/
+            //             rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            //             switching = true;
+            //         }
+            //     }
+            // }
 
-            btn.addEventListener('click', sortTable);
+            geojsonFetch();  
 
-            // define the function to sort table
-            // define the function to sort table
-            function sortTable(e) {
-                let table, rows, switching, i, x, y, shouldSwitch;
-                table = document.getElementsByTagName("table")[0];
-                switching = true;
-                /*Make a loop that will continue until
-                no switching has been done:*/
-                while (switching) {
-                    //start by saying: no switching is done:
-                    switching = false;
-                    rows = table.rows;
-                    /*Loop through all table rows (except the
-                    first, which contains table headers):*/
-                   for (i = 1; i < (rows.length - 1); i++) {
-                        //start by saying there should be no switching:
-                        shouldSwitch = false;
-                        /*Get the two elements you want to compare,
-                        one from current row and one from the next:*/
-                        x = parseFloat(rows[i].getElementsByTagName("td")[1].innerHTML);
-                        y = parseFloat(rows[i + 1].getElementsByTagName("td")[1].innerHTML);
-                        //check if the two rows should switch place:
-                        if (x < y) {
-                            //if so, mark as a switch and break the loop:
-                            shouldSwitch = true;
-                            break;
+            const sortButton = document.getElementById("sort-button");
+
+            sortButton.addEventListener('click', sortTable);
+
+            // document.addEventListener("DOMContentLoaded", function () {
+            //     const sortButton = document.getElementById("sort-button");
+            //     sortButton.addEventListener("click", sortTable);
+
+                function sortTable() {
+                    const table = document.querySelector("table");
+                    const rows = Array.from(table.rows).slice(1); // Exclude the header row
+
+                    const threatOrder = {
+                        "Unassigned": 3,
+                        "Moderate": 2,
+                        "High": 1,
+                        "Very High": 0,
+                    };
+
+                    rows.sort((a, b) => {
+                        const threatA = a.cells[1].textContent;
+                        const threatB = b.cells[1].textContent;
+
+                        if (threatOrder[threatA] < threatOrder[threatB]) {
+                            return -1;
                         }
+                        if (threatOrder[threatA] > threatOrder[threatB]) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+
+                    // Clear the table
+                    while (table.rows.length > 1) {
+                        table.deleteRow(1);
                     }
-                    if (shouldSwitch) {
-                        /*If a switch has been marked, make the switch
-                        and mark that a switch has been done:*/
-                        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                        switching = true;
-                    }
+
+                    // Append the sorted rows to the table
+                    rows.forEach((row) => {
+                        table.appendChild(row);
+                    });
                 }
-            }
+
+
+
+
+            // });
+
+
         </script>
     </body>   
-<html> 
+<html>
+    
