@@ -19,20 +19,19 @@
             height: 100vh;
             flex-direction: row;
             align-items: stretch;
+ 
         }
 
         #side-panel {
             flex-basis: 500px;
             overflow-y: scroll;
-
-        }
+        }       
 
         #map {
             flex-grow: 1;
+
         }
         
-
-
         table {
             border-collapse: collapse;
             border-spacing: 0;
@@ -61,6 +60,7 @@
                 display: none;
             }
         }
+
     </style>
 </head> 
  
@@ -83,7 +83,7 @@
  
             </div>
             <div id="map"></div>
-        
+
         </main>
         <script>
             mapboxgl.accessToken = 'pk.eyJ1Ijoid3lhdHRzdGFubGV5IiwiYSI6ImNsb2V2eHRrMDBodjIya3BlaXpnbGVmbzMifQ.4d9Kim_-fosnpZmJiyWoLg'
@@ -155,97 +155,46 @@
 
             }
 
-            // geojsonFetch();  
-        
-            // sortButton.addEventListener('click', sortTable);
-
-            // // define the function to sort table
-            // function sortTable(e) {
-            //     let table, rows, switching, i, x, y, shouldSwitch;
-            //     table = document.getElementsByTagName("table")[0];
-            //     switching = true;
-            //     /*Make a loop that will continue until
-            //     no switching has been done:*/
-            //     while (switching) {
-            //         //start by saying: no switching is done:
-            //         switching = false;
-            //         rows = table.rows;
-            //         /*Loop through all table rows (except the
-            //         first, which contains table headers):*/
-            //        for (i = 1; i < (rows.length - 1); i++) {
-            //             //start by saying there should be no switching:
-            //             shouldSwitch = false;
-            //             /*Get the two elements you want to compare,
-            //             one from current row and one from the next:*/
-            //             x = parseFloat(rows[i].getElementsByTagName("td")[1].innerHTML);
-            //             y = parseFloat(rows[i + 1].getElementsByTagName("td")[1].innerHTML);
-            //             //check if the two rows should switch place:
-            //             if (x < y) {
-            //                 //if so, mark as a switch and break the loop:
-            //                 shouldSwitch = true;
-            //                 break;
-            //             }
-            //         }
-            //         if (shouldSwitch) {
-            //             /*If a switch has been marked, make the switch
-            //             and mark that a switch has been done:*/
-            //             rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            //             switching = true;
-            //         }
-            //     }
-            // }
-
             geojsonFetch();  
 
             const sortButton = document.getElementById("sort-button");
 
             sortButton.addEventListener('click', sortTable);
 
-            // document.addEventListener("DOMContentLoaded", function () {
-            //     const sortButton = document.getElementById("sort-button");
-            //     sortButton.addEventListener("click", sortTable);
+            function sortTable() {
+                const table = document.querySelector("table");
+                const rows = Array.from(table.rows).slice(1); // Exclude the header row
 
-                function sortTable() {
-                    const table = document.querySelector("table");
-                    const rows = Array.from(table.rows).slice(1); // Exclude the header row
+                const threatOrder = {
+                    "Unassigned": 3,
+                    "Moderate": 2,
+                    "High": 1,
+                    "Very High": 0
+                };
 
-                    const threatOrder = {
-                        "Unassigned": 3,
-                        "Moderate": 2,
-                        "High": 1,
-                        "Very High": 0,
-                    };
+                rows.sort((a, b) => {
+                    const threatA = a.cells[1].textContent;
+                    const threatB = b.cells[1].textContent;
 
-                    rows.sort((a, b) => {
-                        const threatA = a.cells[1].textContent;
-                        const threatB = b.cells[1].textContent;
-
-                        if (threatOrder[threatA] < threatOrder[threatB]) {
-                            return -1;
-                        }
-                        if (threatOrder[threatA] > threatOrder[threatB]) {
-                            return 1;
-                        }
-                        return 0;
-                    });
-
-                    // Clear the table
-                    while (table.rows.length > 1) {
-                        table.deleteRow(1);
+                    if (threatOrder[threatA] < threatOrder[threatB]) {
+                        return -1;
                     }
+                    if (threatOrder[threatA] > threatOrder[threatB]) {
+                        return 1;
+                    }
+                    return 0;
+                });
 
-                    // Append the sorted rows to the table
-                    rows.forEach((row) => {
-                        table.appendChild(row);
-                    });
+                // Clear the table
+                while (table.rows.length > 1) {
+                    table.deleteRow(1);
                 }
 
-
-
-
-            // });
-
-
+                // Append the sorted rows to the table
+                rows.forEach((row) => {
+                    table.appendChild(row);
+                });
+            }
         </script>
     </body>   
 <html>
